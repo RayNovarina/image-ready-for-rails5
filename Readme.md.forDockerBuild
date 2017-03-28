@@ -1,0 +1,218 @@
+###################
+# image-rails5 image is composed of ubuntu, ruby 2.3 and rails 5
+# After building, run the shell and create a rails app, i.e.:
+
+$ docker-compose run shell
+  @root # rails new .
+  @root # bundle install
+  @root # rails s
+
+access via localhost:3000
+
+
+
+  docker run -it -v $(pwd):/app shell
+
+##################
+
+# from Dockerhub at: https://hub.docker.com/r/bartoffw/rails5/~/dockerfile/
+# pulled Mar 25, 2017
+
+
+Rails 5 docker image
+This image allows you to easily develop Rails 5 app.
+
+Details
+Currently the image uses Rails 5 riding Ruby 2.3.1. It will be
+updated over time to always use the edge version of Rails and latest
+version of Ruby.
+
+================================================================================
+I. How to use it
+
+Option 1
+You can build the image straight from the Dockerfile:
+
+docker build .
+
+Option 2
+You can run it individually from your project's root folder:
+
+docker run -it -v $(pwd):/app bartoffw/rails5
+
+Option 3
+Or you can use Docker Compose to run the entire environment:
+
+docker-compose up
+
+Before running Docker Compose you need to place the docker-compose.yml file
+in your project's root folder. No need to copy any other files.
+
+Option ray:
+to bring up shell:
+
+docker run -it -v $(pwd):/app -v $(pwd)/container/gems:/root/.rbenv bartoffw/rails5 /bin/bash
+
+to load image, build container, install rails gems, start server:
+
+  $ docker run -it -v $(pwd):/app bartoffw/rails5 /bin/bash -c "bundle install;"
+
+========================
+II. Using Option 2 - Docker run using image from DockerHub:
+
+1) Run container, install rails gems, start server:
+
+  $ docker run -it -p 3000:3000 -v $(pwd):/app bartoffw/rails5 /bin/bash -c "bundle install; bin/rails server -b 0.0.0.0"
+  Don't run Bundler as root. Bundler can ask for sudo if it is needed, and installing your bundle as root will break this applicationfor all non-root users on this machine.
+
+  Fetching gem metadata from https://rubygems.org/
+  Fetching version metadata from https://rubygems.org/
+  Fetching dependency metadata from https://rubygems.org/
+  Installing rake 12.0.0
+  Installing concurrent-ruby 1.0.5
+      .........
+  Installing rails 5.0.2
+  Installing sass-rails 5.0.6
+
+  Bundle complete! 15 Gemfile dependencies, 62 gems now installed.
+  Use `bundle show [gemname]` to see where a bundled gem is installed.
+  => Booting Puma
+  => Rails 5.0.2 application starting in development on http://0.0.0.0:3000
+  => Run `rails server -h` for more startup options
+  Puma starting in single mode...
+  * Version 3.8.2 (ruby 2.3.1-p112), codename: Sassy Salamander
+  * Min threads: 5, max threads: 5
+  * Environment: development
+  * Listening on tcp://0.0.0.0:3000
+  Use Ctrl-C to stop
+
+2) Access locally Via browser: localhost:3000
+
+  Started GET "/" for 172.17.0.1 at 2017-03-26 21:13:20 +0000
+  Cannot render console from 172.17.0.1! Allowed networks: 127.0.0.1, ::1, 127.0.0.0/127.255.255.255
+  Processing by Rails::WelcomeController#index as HTML
+    Parameters: {"internal"=>true}
+    Rendering /root/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/railties-5.0.2/lib/rails/templates/rails/welcome/index.html.erb
+    Rendered /root/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/railties-5.0.2/lib/rails/templates/rails/welcome/index.html.erb (9.7ms)
+  Completed 200 OK in 52ms (Views: 28.1ms | ActiveRecord: 0.0ms)
+
+        "Yay! you are on Rails!"
+
+3) Docker images, containers:
+  $ docker images
+    REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+    <none>              <none>              0532efe6d6ed        19 hours ago        578 MB
+    ubuntu              trusty              7c09e61e9035        3 weeks ago         188 MB
+    bartoffw/rails5     latest              2ccff8ff413a        7 months ago        566 MB
+
+  $ docker ps
+    CONTAINER ID        IMAGE               COMMAND                  PORTS                    NAMES
+    c65cc8ed7a5d        bartoffw/rails5     "/bin/bash -c 'bun..."   0.0.0.0:3000->3000/tcp   mystifying_tesla
+
+  $ docker ps --filter "status=exited"
+    CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+
+4) Stop, restart.
+  $ docker stop c65cc8ed7a5d
+    c65cc8ed7a5d
+
+  $ docker ps
+    CONTAINER ID        IMAGE               COMMAND             PORTS               NAMES
+
+  $ docker ps --filter "status=exited"
+    CONTAINER ID        IMAGE               COMMAND                  STATUS                         NAMES
+    c65cc8ed7a5d        bartoffw/rails5     "/bin/bash -c 'bun..."   Exited (137) 19 seconds ago    mystifying_tesla
+
+Access locally Via browser: localhost:3000
+
+          "Unable to connect"
+
+x) Restart:
+  $ docker start c65cc8ed7a5d
+    c65cc8ed7a5d
+
+  $ docker ps
+    CONTAINER ID        IMAGE               COMMAND              STATUS              PORTS                    NAMES
+    c65cc8ed7a5d        bartoffw/rails5     "/bin/bash -c 'bun..."   Up 27 seconds       0.0.0.0:3000->3000/tcp   mystifying_tesla
+
+2) Access locally Via browser: localhost:3000
+
+        "Yay! you are on Rails!"
+
+Soooo.... stopped container still has the installed gems in the container, using
+rails app in host storage.
+
+================================================================================
+2) Run container and install rails within container:
+
+2a) docker run -it -p 3000:3000 -v $(pwd):/app bartoffw/rails5 bash
+
+2b) Results in:
+  $ docker images
+    REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+    <none>              <none>              0532efe6d6ed        14 seconds ago      578 MB
+    ubuntu              trusty              7c09e61e9035        3 weeks ago         188 MB
+    bartoffw/rails5     latest              2ccff8ff413a        7 months ago        566 MB
+
+  $ docker ps
+    CONTAINER ID        IMAGE               COMMAND          PORTS                    NAMES
+    689835e33b22        bartoffw/rails5     "bash"           0.0.0.0:3000->3000/tcp   confident_cori
+
+2c) In bash in the container:
+
+root@689835e33b22:/app# rails s
+  Could not find rake-12.0.0 in any of the sources
+  Run `bundle install` to install missing gems.
+
+root@689835e33b22:/app# rails -v
+  Could not find rake-12.0.0 in any of the sources
+  Run `bundle install` to install missing gems.
+
+root@689835e33b22:/app# ls
+  Dockerfile  Gemfile  Gemfile.lock  README.md  Rakefile  app  bin  config  config.ru  db  lib  log  public  test  tmp  vendor
+
+root@689835e33b22:/app# bundle install
+  Don't run Bundler as root. Bundler can ask for sudo if it is needed, and installing your bundle as root will break this application
+  for all non-root users on this machine.
+
+  Fetching gem metadata from https://rubygems.org/
+  Fetching version metadata from https://rubygems.org/
+    ......
+  Bundle complete! 15 Gemfile dependencies, 62 gems now installed.
+  Use `bundle show [gemname]` to see where a bundled gem is installed.
+
+root@689835e33b22:/app# rails -v
+  Rails 5.0.2
+
+root@689835e33b22:/app# bundle show rails
+  /root/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/rails-5.0.2
+
+root@689835e33b22:/app# cd /
+
+root@689835e33b22:/# ls
+    app  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+
+root@689835e33b22:/app# bin/rails server -b 0.0.0.0
+    => Booting Puma
+
+    => Rails 5.0.2 application starting in development on http://0.0.0.0:3000
+    => Run `rails server -h` for more startup options
+    Puma starting in single mode...
+    * Version 3.8.2 (ruby 2.3.1-p112), codename: Sassy Salamander
+    * Min threads: 5, max threads: 5
+    * Environment: development
+    * Listening on tcp://0.0.0.0:3000
+    Use Ctrl-C to stop
+    Started GET "/" for 172.17.0.1 at 2017-03-26 05:25:34 +0000
+    Cannot render console from 172.17.0.1! Allowed networks: 127.0.0.1, ::1, 127.0.0.0/127.255.255.255
+    Processing by Rails::WelcomeController#index as HTML
+      Parameters: {"internal"=>true}
+      Rendering /root/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/railties-5.0.2/lib/rails/templates/rails/welcome/index.html.erb
+      Rendered /root/.rbenv/versions/2.3.1/lib/ruby/gems/2.3.0/gems/railties-5.0.2/lib/rails/templates/rails/welcome/index.html.erb (9.
+    9ms)
+    Completed 200 OK in 49ms (Views: 29.7ms | ActiveRecord: 0.0ms)
+
+2d) Run rails app via browser:
+    open localhost:3000
+
+        "Yay you are on Rails!"
